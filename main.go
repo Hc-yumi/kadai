@@ -18,7 +18,7 @@ type Bookmark struct {
 	Comment string `form:"bookcomment"`
 }
 
-// myuserテーブルと同じ構造にしておく。GoでDBとデータのやり取りをするときはこのStructを使用する。
+// booklistテーブルと同じ構造。GoでDBとデータのやり取りをするときはこのStructを使用する。
 // User structと中身が同じだが、今回のAPIの仕様上たまたまそうなっただけなのでDB用に別で定義している。
 type Record struct {
 	ID       int
@@ -29,8 +29,8 @@ type Record struct {
 }
 
 func main() {
-	// まずはデータベースに接続する。(パスワードとか違うと思うので随時修正して)
-	dsn := "host=localhost user=postgres password=Hach8686 dbname=test port=5432 sslmode=disable TimeZone=Asia/Tokyo"
+	// まずはデータベースに接続する。(パスワードとか違うと思うので随時修正)
+	dsn := "host=localhost user=postgres password=******** dbname=test port=5432 sslmode=disable TimeZone=Asia/Tokyo"
 	conn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		// エラーでたらプロセス終了

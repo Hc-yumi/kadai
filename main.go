@@ -29,7 +29,7 @@ type Record struct {
 
 func main() {
 	// まずはデータベースに接続する。(パスワードは各々異なる)
-	dsn := "host=localhost user=postgres password=******** dbname=test port=5432 sslmode=disable TimeZone=Asia/Tokyo"
+	dsn := "host=localhost user=postgres password=Hach8686 dbname=test port=5432 sslmode=disable TimeZone=Asia/Tokyo"
 	conn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		// エラーでたらプロセス終了

@@ -8,6 +8,8 @@
 </head>
 <body>
   <a href="http://localhost:8080/postpage">Post pageへ</a>
+
+
   <table border='2'>
     <tr>
       <th>ID</th>
@@ -22,15 +24,58 @@
     {{ range .Books }} 
 
     <tr>
-      <td><p>{{ .ID }}</p></td>
-      <td><p>{{ .Bookname }}</td>
-      <td><p>{{ .URL }}</td>
-      <td><p>{{ .Comment }}</p></td>
-      <td><p >{{ .Time }}</p></td>
+      
+
+        <td><p>{{ .ID }}</p></td>
+        <td><p>{{ .Bookname }}</td>
+        <td><p>{{ .URL }}</td>
+        <td><p>{{ .Comment }}</p></td>
+        <td><p >{{ .Time }}</p></td>
+
+        <td><a onclick="runDelete(this.id)" id="{{ .ID }}">[削除]</a></td>
+
+
     </tr>
     {{ end }}
   </table>
 
+  
+
+
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script> 
+  <script type="text/javascript">
+
+    function runDelete(id){
+
+        $.ajax({
+            type: 'DELETE',
+            url: 'http://localhost:8080/book/'+id,
+
+
+            crossDomain: true,
+            success: function(msg) {
+
+                alert("success");
+            },
+            error: function (request, status, error) {
+
+                alert(error);
+            }
+        });
+    };
+
+</script>
+
+
+
+
+  <style>
+    .delete {
+    font-size: 12px;
+    cursor: pointer;
+    }
+  </style>
   
 </body>
 </html>

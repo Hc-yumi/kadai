@@ -102,7 +102,51 @@ func main() {
 		c.Redirect(http.StatusFound, location.RequestURI())
 	})
 
+
+	// データの削除
+	r.DELETE("/book/:id", func(c *gin.Context) {
+		id:=c.Param("id")
+		fmt.Println("id is ", id)
+		var records []Record
+		dbc := conn.Raw("DELETE FROM booklist where id=?",id).Scan(&records)
+		
+		if dbc.Error != nil {
+			fmt.Print(err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return
+		}
+
+		location := url.URL{Path: "/showpage"}
+		c.Redirect(http.StatusMovedPermanently, location.RequestURI())
+	})
+
+
+
+
+	// showpageで書籍名をinputしてボタン押したら→入力した書籍名とおなじ列をdeleteする
+	r.DELETE("/book/:bookname", func(c *gin.Context) {
+		bookname:=c.Param("bookname")
+		fmt.Println("bookname is ", bookname)
+		var records []Record
+		dbc := conn.Raw("DELETE FROM booklist where bookname=?",bookname).Scan(&records)
+		
+		if dbc.Error != nil {
+			fmt.Print(err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return
+		}
+
+		location := url.URL{Path: "/showpage"}
+		c.Redirect(http.StatusMovedPermanently, location.RequestURI())
+
+		// showpageで書籍名をinputしてボタン押したら→入力した書籍名とおなじ列をdeleteする
+
+	})
+
+
+
 	// サーバーを立ち上げた瞬間は一旦ここまで実行されてListening状態となる。
 	// r.POST( や　r.GET(　等の関数はAPIが呼ばれる度に実行される。
-	r.Run()
+		r.Run()
+
 }

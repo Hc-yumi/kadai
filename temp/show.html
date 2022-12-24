@@ -39,7 +39,11 @@
     {{ end }}
   </table>
 
-  
+
+  <tr>
+    <td><p>書籍名<input type="text" name="bookName" id="bookname" size="20" value=""></p></td>
+  </tr>
+  <button onclick="var x =document.getElementById('bookname').value; console.log(x); DeleteByBookname(x)" bookname="">削除</button>
 
 
 
@@ -65,10 +69,27 @@
         });
     };
 
+
+    function DeleteByBookname(bookname){
+
+      $.ajax({
+        type: 'DELETE',
+        url: 'http://localhost:8080/book/select/'+bookname,
+
+
+        crossDomain: true,
+        success: function(msg) {
+
+            alert("success");
+        },
+        error: function (request, status, error) {
+
+            alert(error);
+    }
+});
+};
+
 </script>
-
-
-
 
   <style>
     .delete {

@@ -65,7 +65,7 @@ func main() {
 		// &recordsをDBに渡して、取得したデータを割り付ける。
 		dbc := conn.Raw("SELECT id, bookname,url,comment,to_char(time,'YYYY-MM-DD HH24:MI:SS') AS time FROM booklist").Scan(&records)
 		if dbc.Error != nil {
-			fmt.Print(err.Error())
+			fmt.Print(dbc.Error)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 			return
 		}
@@ -122,9 +122,8 @@ func main() {
 
 
 
-
 	// showpageで書籍名をinputしてボタン押したら→入力した書籍名とおなじ列をdeleteする
-	r.DELETE("/book/:bookname", func(c *gin.Context) {
+	r.DELETE("/book/select/:bookname", func(c *gin.Context) {
 		bookname:=c.Param("bookname")
 		fmt.Println("bookname is ", bookname)
 		var records []Record
@@ -138,8 +137,6 @@ func main() {
 
 		location := url.URL{Path: "/showpage"}
 		c.Redirect(http.StatusMovedPermanently, location.RequestURI())
-
-		// showpageで書籍名をinputしてボタン押したら→入力した書籍名とおなじ列をdeleteする
 
 	})
 

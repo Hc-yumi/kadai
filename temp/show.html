@@ -33,6 +33,7 @@
         <td><p >{{ .Time }}</p></td>
 
         <td><a onclick="runDelete(this.id)" id="{{ .ID }}">[削除]</a></td>
+        <td><a onclick="runSelect(this.id)" id="{{ .ID }}">[選択]</a></td>
 
 
     </tr>
@@ -47,9 +48,13 @@
 
 
 
+
+
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script> 
   <script type="text/javascript">
 
+
+// Delete 削除ボタンを押したら、項目が削除される
     function runDelete(id){
 
         $.ajax({
@@ -69,7 +74,7 @@
         });
     };
 
-
+// Delete 該当の書籍名を入力して「削除」を押すと項目ごと消える
     function DeleteByBookname(bookname){
 
       $.ajax({
@@ -85,9 +90,33 @@
         error: function (request, status, error) {
 
             alert(error);
-    }
-});
-};
+        }
+      });
+    };
+
+
+// GET idクリックして、clickされた項目だけが表示されるページに遷移する
+  function runSelect(id){
+
+    $.ajax({
+      type: 'GET',
+      url: 'http://localhost:8080/book/transition/'+id,
+
+
+      crossDomain: true,
+      success: function(msg) {
+
+          alert("success");
+      },
+      error: function (request, status, error) {
+
+          alert(error);
+      }
+    });
+  };
+
+
+    
 
 </script>
 

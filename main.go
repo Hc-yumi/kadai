@@ -92,7 +92,7 @@ func main() {
 			"insert into booklist(bookname, url, comment) values(?, ?, ?)",
 			book.Name, book.URL, book.Comment).Scan(&record)
 		if dbc.Error != nil {
-			fmt.Print(err.Error())
+			fmt.Print(dbc.Error)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 			return
 		}
@@ -111,7 +111,7 @@ func main() {
 		dbc := conn.Raw("DELETE FROM booklist where id=?",id).Scan(&records)
 		
 		if dbc.Error != nil {
-			fmt.Print(err.Error())
+			fmt.Print(dbc.Error)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 			return
 		}
@@ -130,7 +130,7 @@ func main() {
 		dbc := conn.Raw("DELETE FROM booklist where bookname=?",bookname).Scan(&records)
 		
 		if dbc.Error != nil {
-			fmt.Print(err.Error())
+			fmt.Print(dbc.Error)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 			return
 		}
@@ -139,6 +139,34 @@ func main() {
 		c.Redirect(http.StatusMovedPermanently, location.RequestURI())
 
 	})
+
+
+	// GET APIでid(ここを押せるようにする)を押すと、そのデータだけが表示されたページに遷移する
+	// 結果を表示するページを返す。
+
+		r.GET("/book/transition/:id", func(c *gin.Context) {
+			id:=c.Param("id")
+			fmt.Println("id is ", id)
+			var records []Record
+			dbc := conn.Raw("SELECT id FROM booklist").Scan(&records)
+			
+			if dbc.Error != nil {
+				fmt.Print(dbc.Error)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+				return
+			}
+				fmt.Println("aaa")
+			// レスポンスとして、select.htmlを返すが、一緒にrecordsも返している。
+			// これにより、HTML内でデータを返す
+
+			// c.HTML(http.StatusOK, "select.html", gin.H{
+			// 	"Books": records,
+			// })
+				c.HTML(http.StatusOK, "post.html", gin.H{})
+	
+			// location := url.URL{Path: "/showpage"}
+			// c.Redirect(http.StatusMovedPermanently, location.RequestURI())
+		})
 
 
 

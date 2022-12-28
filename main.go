@@ -18,6 +18,12 @@ type Bookmark struct {
 	Comment string `form:"bookcomment"`
 }
 
+type BookmarkJson struct {
+	Name    string `json:"bookname"`
+	URL     string `json:"URL"`
+	Comment string `json:"Comment"`
+}
+
 // booklistテーブルと同じ構造。
 type Record struct {
 	ID       int
@@ -41,7 +47,7 @@ func main() {
 	 * rはrouterの略で何のAPIを用意するかを定義する。
 	 * postpage　GET、/showpage　GET、/user　POST
 	 */
-	
+
 	r := gin.Default()
 
 	// ginに対して、使うHTMLのテンプレートがどこに置いてあるかを知らせる。
@@ -78,7 +84,7 @@ func main() {
 
 	// データを登録するAPI。POST用のページ（post.html）の内部で送信ボタンを押すと呼ばれるAPI。
 	r.POST("/book", func(c *gin.Context) {
-		
+
 		var book Bookmark
 		if err := c.ShouldBind(&book); err != nil {
 			fmt.Print(err.Error())
@@ -103,75 +109,95 @@ func main() {
 	})
 
 
-	// データの削除
-	r.DELETE("/book/:id", func(c *gin.Context) {
-		id:=c.Param("id")
-		fmt.Println("id is ", id)
-		var records []Record
-		dbc := conn.Raw("DELETE FROM booklist where id=?",id).Scan(&records)
-		
+	// PUT 内容のupdate
+	r.PUT("/bookupdate/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		var book Bookmark
+		if err := c.ShouldBind(&book); err != nil {
+			fmt.Print(err.Error())
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid argument"})
+			return
+		}
+		var record Record
+		dbc := conn.Raw(
+			"UPDATE booklist SET bookname=?, url=?, comment=? where id=?",
+			book.Name, book.URL, book.Comment, id).Scan(&record)
 		if dbc.Error != nil {
 			fmt.Print(dbc.Error)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 			return
 		}
 
-		location := url.URL{Path: "/showpage"}
-		c.Redirect(http.StatusMovedPermanently, location.RequestURI())
 	})
 
 
+	// データの削除
+	r.DELETE("/book/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		fmt.Println("id is ", id)
+		var records []Record
+		dbc := conn.Raw("DELETE FROM booklist where id=?", id).Scan(&records)
+
+		if dbc.Error != nil {
+			fmt.Print(dbc.Error)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return
+		}
+	})
 
 	// showpageで書籍名をinputしてボタン押したら→入力した書籍名とおなじ列をdeleteする
 	r.DELETE("/book/select/:bookname", func(c *gin.Context) {
-		bookname:=c.Param("bookname")
+		bookname := c.Param("bookname")
 		fmt.Println("bookname is ", bookname)
-		var records []Record
-		dbc := conn.Raw("DELETE FROM booklist where bookname=?",bookname).Scan(&records)
-		
+
+		// レコードが存在するか確認。
+		var record Record
+		dbc := conn.Raw("SELECT * FROM booklist where bookname=?", bookname).Scan(&record)
 		if dbc.Error != nil {
 			fmt.Print(dbc.Error)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 			return
 		}
+		// レコードがなければNotFoundエラーを返す
+		if dbc.RowsAffected == 0 {
+			c.JSON(http.StatusNotFound, gin.H{})
+			return
+		}
 
-		location := url.URL{Path: "/showpage"}
-		c.Redirect(http.StatusMovedPermanently, location.RequestURI())
+		var records []Record
+		dbc = conn.Raw("DELETE FROM booklist where bookname=?", bookname).Scan(&records)
 
+		if dbc.Error != nil {
+			fmt.Print(dbc.Error)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return
+		}
+		c.JSON(http.StatusNoContent, gin.H{})
 	})
-
 
 	// GET APIでid(ここを押せるようにする)を押すと、そのデータだけが表示されたページに遷移する
 	// 結果を表示するページを返す。
 
-		r.GET("/book/transition/:id", func(c *gin.Context) {
-			id:=c.Param("id")
-			fmt.Println("id is ", id)
-			var records []Record
-			dbc := conn.Raw("SELECT id FROM booklist").Scan(&records)
-			
-			if dbc.Error != nil {
-				fmt.Print(dbc.Error)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-				return
-			}
-				fmt.Println("aaa")
-			// レスポンスとして、select.htmlを返すが、一緒にrecordsも返している。
-			// これにより、HTML内でデータを返す
+	r.GET("/book/transition/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		fmt.Println("id is ", id)
+		// c.HTML(http.StatusOK, "select.html", gin.H{"id": id})
+		var records []Record
+		dbc := conn.Raw("SELECT id, bookname,url,comment,to_char(time,'YYYY-MM-DD HH24:MI:SS') AS time FROM booklist where id=?", id).Scan(&records)
 
-			// c.HTML(http.StatusOK, "select.html", gin.H{
-			// 	"Books": records,
-			// })
-				c.HTML(http.StatusOK, "post.html", gin.H{})
-	
-			// location := url.URL{Path: "/showpage"}
-			// c.Redirect(http.StatusMovedPermanently, location.RequestURI())
+		if dbc.Error != nil {
+			fmt.Print(dbc.Error)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return
+		}
+
+		c.HTML(http.StatusOK, "select.html", gin.H{
+			"Selects": records,
 		})
-
-
+	})
 
 	// サーバーを立ち上げた瞬間は一旦ここまで実行されてListening状態となる。
 	// r.POST( や　r.GET(　等の関数はAPIが呼ばれる度に実行される。
-		r.Run()
+	r.Run()
 
 }

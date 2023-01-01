@@ -69,7 +69,7 @@ func main() {
 	r.GET("/showpage", func(c *gin.Context) {
 		var records []Record
 		// &recordsをDBに渡して、取得したデータを割り付ける。
-		dbc := conn.Raw("SELECT id, bookname,url,comment,to_char(time,'YYYY-MM-DD HH24:MI:SS') AS time FROM booklist").Scan(&records)
+		dbc := conn.Raw("SELECT id, bookname,url,comment,to_char(time,'YYYY-MM-DD HH24:MI:SS') AS time FROM booklist ORDER BY id").Scan(&records)
 		if dbc.Error != nil {
 			fmt.Print(dbc.Error)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
@@ -108,11 +108,10 @@ func main() {
 		c.Redirect(http.StatusFound, location.RequestURI())
 	})
 
-
 	// PUT 内容のupdate
 	r.PUT("/bookupdate/:id", func(c *gin.Context) {
 		id := c.Param("id")
-		var book Bookmark
+		var book BookmarkJson
 		if err := c.ShouldBind(&book); err != nil {
 			fmt.Print(err.Error())
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid argument"})
@@ -129,7 +128,6 @@ func main() {
 		}
 
 	})
-
 
 	// データの削除
 	r.DELETE("/book/:id", func(c *gin.Context) {
@@ -192,7 +190,7 @@ func main() {
 		}
 
 		c.HTML(http.StatusOK, "select.html", gin.H{
-			"Selects": records,
+			"Selects": records[0],
 		})
 	})
 
@@ -201,3 +199,5 @@ func main() {
 	r.Run()
 
 }
+
+// ログイン

@@ -33,6 +33,14 @@ type Record struct {
 	Time     string
 }
 
+// login機能 Userモデルの宣言
+type User struct {
+	Company  string `form:"company" binding:"required"`
+	Username string `form:"username" binding:"required" gorm:"unique;not null"`
+	password string `form:"password" binding:"required"`
+}
+
+
 func main() {
 	// まずはデータベースに接続する。(パスワードは各々異なる)
 	dsn := "host=localhost user=postgres password=Hach8686 dbname=test port=5432 sslmode=disable TimeZone=Asia/Tokyo"
@@ -58,6 +66,73 @@ func main() {
 		location := url.URL{Path: "/showpage"}
 		c.Redirect(http.StatusFound, location.RequestURI())
 	})
+
+
+	//************* signup/login 機能 **************//  
+	// (途中・・・)
+
+	r.GET("/signup", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "sign.html", gin.H{})
+	})
+
+	// ユーザー登録
+	r.POST("/signup", func(c *gin.Context) {
+		var form User
+		// バリデーション処理
+		if err := c.Bind(&form); err != nil {
+			c.HTML(http.StatusBadRequest, "signup.html", gin.H{"err": err})
+			c.Abort()
+		} else {
+			username := c.PostForm("username")
+			password := c.PostForm("password")
+			// 登録ユーザーが重複していた場合にはじく処理
+			if err := createUser(username, password); err != nil {
+				c.HTML(http.StatusBadRequest, "signup.html", gin.H{"err": err})
+			}
+			c.Redirect(302, "/")
+		}
+	})	
+
+	// ユーザーログイン画面
+	
+	r.GET("/login", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "login.html", gin.H{})
+	})
+
+	r.POST("/login", func(c *gin.Context) {
+
+		// DBから取得したユーザーパスワード(Hash)
+		dbPassword := getUser(c.PostForm("username")).Password
+		log.Println(dbPassword)
+		// フォームから取得したユーザーパスワード
+		formPassword := c.PostForm("password")
+
+		// ユーザーパスワードの比較
+		if err := crypto.CompareHashAndPassword(dbPassword, formPassword); err != nil {
+				log.Println("ログインできませんでした")
+				c.HTML(http.StatusBadRequest, "login.html", gin.H{"err": err})
+				c.Abort()
+		} else {
+				log.Println("ログインできました")
+				c.Redirect(302, "/")
+		}
+
+		// ユーザーを一件取得
+		// func getUser(username string) User {
+		// db := gormConnect()
+		// var user User
+		// db.First(&user, "username = ?", username)
+		// db.Close()
+		// return user
+		// }
+
+	})
+	
+	//************* signup/login 機能 **************//  
+
+
+
+	
 
 	// POST用のページ（post.html）を返す。
 	// c.HTMLというのはこのAPIのレスポンスとしてHTMLファイルを返すよ、という意味

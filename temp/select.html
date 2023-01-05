@@ -23,19 +23,19 @@
 
     <!-- range.  Books  レコードを呼んでくるときに付けた名前 main.goの75行目 -->
     <!-- グローバル変数的な扱い。 .○○ 箱の中のどれかを指す-->
-    {{ range .Selects }} 
+
 
     <tr>
-        <td><p>{{ .ID }}</p></td>
-        <td><input type="text" id="bookname" value="{{ .Bookname }}"></td>
-        <td><input type="text" id="URL" value="{{ .URL }}"></td>
-        <td><input type="text" id="comment" value=" {{ .Comment }}"></td>
-        <td><p>{{ .Time }}</p></td>
+        <td><p>{{.Selects.ID }}</p></td>
+        <td><input type="text" id="bookname" value="{{ .Selects.Bookname }}"></td>
+        <td><input type="text" id="URL" value="{{ .Selects.URL }}"></td>
+        <td><input type="text" id="comment" value=" {{ .Selects.Comment }}"></td>
+        <td><p>{{ .Selects.Time }}</p></td>
     </tr>
-    {{ end }}
   </table>
 
-  <button onclick="runUpdate(this.id)" id="{{ .ID }}">更新</button>
+
+  <button onclick="runUpdate(this.id)" id="{{.Selects.ID }}">更新</button>
 
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script> 
@@ -48,22 +48,22 @@
         "Comment":document.getElementById('comment').value,
         }
 
-      // $.ajax({
-      //       type: 'PUT',
-      //       url: 'http://localhost:8080/bookupdate/'+id,
-      //       contentType: 'application/json',
-      //       data: JSON.stringify(data),  // access in body
+      $.ajax({
+            type: 'PUT',
+            url: 'http://localhost:8080/bookupdate/'+id,
+            contentType: 'application/json',
+            data: JSON.stringify(data),  // access in body
 
-      //       success: function(msg) {
-      //           alert("success");
-      //           // window.location.href = 'http://localhost:8080/showpage'; // 通常の遷移
-      //           // window.open('http://localhost:8080/showpage', '_blank');
-      //       },
-      //       error: function (request, status, error) {
-      //         console.log(request);
-      //           alert(error);
-      //       }
-      //   });
+            success: function(msg) {
+                alert("success");
+                window.location.href = 'http://localhost:8080/showpage'; // 通常の遷移
+                window.open('http://localhost:8080/showpage', '_blank');
+            },
+            error: function (request, status, error) {
+              console.log(request);
+                alert(error);
+            }
+        });
     };
   
   </script>
